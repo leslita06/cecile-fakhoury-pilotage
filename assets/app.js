@@ -79,7 +79,7 @@ function renderLieux(r){
     var pc=p?sum(p.filter(function(v){return v.lieu===l}),function(v){return v.prix}):null;
     var dim=S.lieu!=='all'&&S.lieu!==l?' dim':'';
     return '<div class="lieu'+dim+'" data-lieu="'+l+'"><span class="n"><i style="background:'+COUL[l]+'"></i>'+(l==='Foires'?'En foire':l)+'</span><span class="m">'+money(ca)+'</span>'+
-      '<span class="s"><span>'+nf(vs.length)+' œuvres · '+nf(ca/tot*100,0)+'\u00a0% du total</span><span>'+(p?delta(ca,pc)+'sur un an':'')+'</span></span>'+
+      '<span class="s"><span>'+nf(vs.length)+' œuvres · '+nf(ca/tot*100,0)+'\u00a0% du total</span><span>'+(p&&pc?delta(ca,pc)+'sur un an':(p&&ca?'aucune vente un an plus tôt':''))+'</span></span>'+
       '<span class="bar"><span style="width:'+(ca/mx*100)+'%;background:'+COUL[l]+'"></span></span></div>';
   }).join('');
   Array.prototype.forEach.call(document.querySelectorAll('.lieu'),function(el){el.onclick=function(){S.lieu=S.lieu===el.dataset.lieu?'all':el.dataset.lieu;$('f-lieu').value=S.lieu;render()}});
@@ -165,6 +165,6 @@ function bind(){
   $('arrete').textContent=D.arrete;
 }
 Chart.defaults.font.family='Inter';
-fetch('data/donnees.json?v=20261116d').then(function(r){return r.json()}).then(function(j){D=j;bind();render()})
+fetch('data/donnees.json?v=20261116e').then(function(r){return r.json()}).then(function(j){D=j;bind();render()})
  .catch(function(){$('phrase').textContent='Les données n’ont pas pu être chargées. Recharger la page.'});
 })();
