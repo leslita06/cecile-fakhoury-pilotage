@@ -87,14 +87,14 @@ function renderLieux(r){
 function renderMois(r){
   var ms=mlist(r.a,r.b), c=sales(r.a,r.b,{lieu:1});
   var ds=LIEUX.filter(function(l){return S.lieu==='all'||S.lieu===l}).map(function(l){
-    return {label:l==='Foires'?'En foire':l,backgroundColor:COUL[l],borderWidth:0,barPercentage:.72,categoryPercentage:.9,
+    return {label:l==='Foires'?'En foire':l,backgroundColor:COUL[l],borderWidth:0,barPercentage:.72,categoryPercentage:.9,maxBarThickness:28,
       data:ms.map(function(m){return sum(c.filter(function(v){return v.lieu===l&&v.mois===m}),function(v){return v.prix})*(S.dev==='XOF'?D.taux_fcfa:1)})}});
   var cfg={type:'bar',data:{labels:ms.map(function(m){return mlab(m,true)}),datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},
       plugins:{legend:{position:'bottom',align:'start',labels:{boxWidth:9,boxHeight:9,usePointStyle:true,pointStyle:'circle',color:'#4A4945',font:{family:'Inter',size:12},padding:16}},
         tooltip:{backgroundColor:'#111',titleFont:{family:'Inter',size:12},bodyFont:{family:'Inter',size:12},padding:10,cornerRadius:0,
           callbacks:{label:function(x){return ' '+x.dataset.label+' : '+money(x.raw/(S.dev==='XOF'?D.taux_fcfa:1))}}}},
-      scales:{x:{stacked:true,grid:{display:false},border:{color:'#111'},ticks:{color:'#8A8780',font:{family:'Inter',size:11},maxRotation:0,autoSkipPadding:8}},
+      scales:{x:{stacked:true,grid:{display:false},border:{color:'#111'},ticks:{color:'#8A8780',font:{family:'Inter',size:innerWidth<480?10:11},maxRotation:0,autoSkip:true,autoSkipPadding:innerWidth<480?4:8}},
         y:{stacked:true,grid:{color:'#ECE9E2'},border:{display:false},ticks:{color:'#8A8780',font:{family:'Inter',size:11},maxTicksLimit:5,
           callback:function(v){return S.dev==='XOF'?nf(v/1e6,0)+' M':nf(v/1e3,0)+' k'}}}}}};
   if(charts.m){charts.m.destroy()} charts.m=new Chart($('c-mois'),cfg);
@@ -124,7 +124,7 @@ function renderFoires(r){
   var h='<thead><tr><th>Foire</th><th>Ventes</th><th>Œuvres</th><th>Coût du stand</th><th>Ventes / coût</th><th>Contacts</th><th>Nouveaux acheteurs</th></tr></thead><tbody>';
   if(!rows.length) h+='<tr><td colspan="7" class="empty">Aucune foire sur cette sélection.</td></tr>';
   rows.forEach(function(o){var x=o.x,full=S.art==='all'&&S.ach==='all';
-    h+='<tr><td class="t">'+x.edition+'<small>'+x.ville+' · '+dfr(x.date)+'</small></td><td><span class="minibar"><span style="width:'+(o.ca/mx*100)+'%"></span></span>'+money(o.ca)+'</td><td>'+o.n+'</td><td>'+money(x.cout)+'</td><td>'+(full?nf(o.ca/x.cout,1)+'\u00a0×':'·')+'</td><td>'+(full?x.contacts:'·')+'</td><td>'+(full?x.nouveaux:'·')+'</td></tr>'});
+    h+='<tr><td class="t">'+x.nom+'<small>'+x.ville+' · '+mlab(x.mois)+'<span class="tag">Exemple</span></small></td><td><span class="minibar"><span style="width:'+(o.ca/mx*100)+'%"></span></span>'+money(o.ca)+'</td><td>'+o.n+'</td><td>'+money(x.cout)+'</td><td>'+(full?nf(o.ca/x.cout,1)+'\u00a0×':'·')+'</td><td>'+(full?x.contacts:'·')+'</td><td>'+(full?x.nouveaux:'·')+'</td></tr>'});
   if(rows.length>1){var ca=sum(rows,function(o){return o.ca}),co=sum(rows,function(o){return o.x.cout}),full=S.art==='all'&&S.ach==='all';
     h+='<tr class="tot"><td>Total</td><td>'+money(ca)+'</td><td>'+sum(rows,function(o){return o.n})+'</td><td>'+money(co)+'</td><td>'+(full?nf(ca/co,1)+'\u00a0×':'·')+'</td><td>'+(full?sum(rows,function(o){return o.x.contacts}):'·')+'</td><td>'+(full?sum(rows,function(o){return o.x.nouveaux}):'·')+'</td></tr>'}
   $('t-foires').innerHTML=h+'</tbody>';
@@ -165,6 +165,6 @@ function bind(){
   $('arrete').textContent=D.arrete;
 }
 Chart.defaults.font.family='Inter';
-fetch('data/donnees.json?v=20261116e').then(function(r){return r.json()}).then(function(j){D=j;bind();render()})
+fetch('data/donnees.json?v=20261116h').then(function(r){return r.json()}).then(function(j){D=j;bind();render()})
  .catch(function(){$('phrase').textContent='Les données n’ont pas pu être chargées. Recharger la page.'});
 })();

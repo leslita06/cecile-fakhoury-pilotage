@@ -7,7 +7,8 @@
 <title>Galerie Cécile Fakhoury · Pilotage</title>
 <link rel="icon" href="data:,">
 <link rel="preload" href="assets/Cormorant.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="assets/style.css?v=20261116e">
+<link rel="preload" href="assets/Inter.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="assets/style.css?v=20261116h">
 </head>
 <body>
 <header class="masthead">
@@ -19,6 +20,7 @@
     </div>
   </div>
 </header>
+<div class="demo"><div class="wrap">Données de démonstration, à l’exception des expositions, des artistes et de l’audience Instagram</div></div>
 
 <div class="filters" id="filters">
   <div class="wrap fl">
@@ -64,7 +66,7 @@
     <div class="bh"><span class="num">01</span><h2>Ventes par espace</h2></div>
     <div class="grid2">
       <div class="lieux" id="lieux"></div>
-      <div class="chart-box"><p class="cap">Chiffre d'affaires mensuel, par espace</p><div class="ch"><canvas id="c-mois"></canvas></div></div>
+      <div class="chart-box"><p class="cap">Chiffre d'affaires mensuel, par espace</p><div class="ch-scroll"><div class="ch ch-mois"><canvas id="c-mois"></canvas></div></div></div>
     </div>
   </section>
 
@@ -107,6 +109,6 @@
 </footer>
 
 <script src="assets/chart.umd.min.js?v=4"></script>
-<script src="assets/app.js?v=20261116e"></script>
+<script src="assets/app.js?v=20261116h"></script>
 </body>
 </html>
