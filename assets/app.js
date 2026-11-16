@@ -165,6 +165,6 @@ function bind(){
   $('arrete').textContent=D.arrete;
 }
 Chart.defaults.font.family='Inter';
-fetch('data/donnees.json?v=20261116c').then(function(r){return r.json()}).then(function(j){D=j;bind();render()})
+fetch('data/donnees.json?v=20261116d').then(function(r){return r.json()}).then(function(j){D=j;bind();render()})
  .catch(function(){$('phrase').textContent='Les données n’ont pas pu être chargées. Recharger la page.'});
 })();
