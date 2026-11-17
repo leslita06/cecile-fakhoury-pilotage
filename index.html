@@ -6,9 +6,8 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Galerie Cécile Fakhoury · Pilotage</title>
 <link rel="icon" href="data:,">
-<link rel="preload" href="assets/Cormorant.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="assets/Inter.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="assets/style.css?v=20261116h">
+<link rel="stylesheet" href="assets/style.css?v=20261117w">
 </head>
 <body>
 <header class="masthead">
@@ -16,11 +15,11 @@
     <img src="assets/logo.png" alt="Cécile Fakhoury" class="logo">
     <div class="mh-right">
       <p class="eyebrow">Pilotage des trois espaces</p>
-      <p class="arrete">Arrêté au <span id="arrete"></span></p>
+      <p class="arrete"><i class="ic" data-ic="calendar-days"></i>Arrêté au <span id="arrete"></span></p>
     </div>
   </div>
 </header>
-<div class="demo"><div class="wrap">Données de démonstration, à l’exception des expositions, des artistes et de l’audience Instagram</div></div>
+<div class="demo"><div class="wrap"><i class="ic" data-ic="info"></i><span>Données de démonstration, à l’exception des expositions, des artistes et de l’audience Instagram</span></div></div>
 
 <div class="filters" id="filters">
   <div class="wrap fl">
@@ -50,7 +49,7 @@
     <div class="dev" role="group" aria-label="Devise">
       <button data-dev="EUR" class="on">€</button><button data-dev="XOF">FCFA</button>
     </div>
-    <button id="raz" class="raz">Réinitialiser</button>
+    <button id="raz" class="raz"><i class="ic" data-ic="rotate-ccw"></i>Réinitialiser</button>
   </div>
 </div>
 
@@ -63,52 +62,58 @@
   <section class="kpis" id="kpis"></section>
 
   <section class="block">
-    <div class="bh"><span class="num">01</span><h2>Ventes par espace</h2></div>
+    <div class="bh"><span class="bx"><i class="ic" data-ic="lightbulb"></i></span><h2>À regarder cette semaine</h2></div>
+    <div class="retenir" id="retenir"></div>
+  </section>
+
+  <section class="block">
+    <div class="bh"><span class="bx"><i class="ic" data-ic="map-pin"></i></span><h2>Ventes par espace</h2><p class="hint">Cliquer sur un espace filtre la page.</p></div>
     <div class="grid2">
       <div class="lieux" id="lieux"></div>
-      <div class="chart-box"><p class="cap">Chiffre d'affaires mensuel, par espace</p><div class="ch-scroll"><div class="ch ch-mois"><canvas id="c-mois"></canvas></div></div></div>
+      <div class="chart-box"><p class="cap">Chiffre d’affaires par mois</p><div class="ch-scroll"><div class="ch ch-mois"><canvas id="c-mois"></canvas></div></div></div>
     </div>
   </section>
 
   <section class="block">
-    <div class="bh"><span class="num">02</span><h2>Ventes par artiste</h2><p class="hint">Cliquer sur un nom filtre toute la page.</p></div>
+    <div class="bh"><span class="bx"><i class="ic" data-ic="palette"></i></span><h2>Ventes par artiste</h2><p class="hint">Cliquer sur un nom filtre la page.</p></div>
     <div class="artistes" id="artistes"></div>
     <button class="more" id="more">Voir tous les artistes</button>
   </section>
 
   <section class="block">
-    <div class="bh"><span class="num">03</span><h2>Foires</h2></div>
+    <div class="bh"><span class="bx"><i class="ic" data-ic="tent"></i></span><h2>Foires</h2></div>
     <div class="tbl-wrap"><table class="tbl" id="t-foires"></table></div>
   </section>
 
   <section class="block">
-    <div class="bh"><span class="num">04</span><h2>Fréquentation des expositions</h2></div>
+    <div class="bh"><span class="bx"><i class="ic" data-ic="door-open"></i></span><h2>Fréquentation des expositions</h2></div>
     <div class="expo-now" id="expo-now"></div>
     <div class="tbl-wrap"><table class="tbl" id="t-expos"></table></div>
   </section>
 
   <section class="block">
-    <div class="bh"><span class="num">05</span><h2>Audience Instagram</h2></div>
+    <div class="bh"><span class="bx"><i class="ic" data-ic="instagram"></i></span><h2>Audience Instagram</h2></div>
     <div class="grid2">
       <div class="insta-big">
-        <p class="big" id="ig-ab"></p>
-        <p class="lbl">abonnés, relevé public du <span id="ig-rel"></span></p>
+        <div class="hd"><span class="bx"><i class="ic" data-ic="instagram"></i></span><p class="big" id="ig-ab"></p></div>
+        <p class="lbl">abonnés <span class="tag reel">Réel</span> relevé public du <span id="ig-rel"></span></p>
         <div class="ig-mini" id="ig-mini"></div>
       </div>
       <div class="chart-box"><p class="cap">Abonnés en fin de mois</p><div class="ch"><canvas id="c-ig"></canvas></div></div>
     </div>
+    <p class="sub"><i class="ic" data-ic="images"></i>Ce que publie la galerie</p>
     <div class="themes" id="themes"></div>
   </section>
 </main>
 
 <footer class="foot">
   <div class="wrap">
-    <p><strong>Données fictives de démonstration.</strong> Seuls sont réels : la liste des artistes représentés, les titres, lieux et dates des expositions, la liste des foires et le nombre d'abonnés Instagram (29 000, relevé public du 16 novembre 2026). Montants, ventes, acheteurs, participations aux foires, fréquentation et historique Instagram sont inventés pour la démonstration et ne reflètent aucune donnée de la galerie.</p>
+    <p><strong>Données fictives de démonstration.</strong> Seuls sont réels : la liste des artistes représentés, les titres, lieux et dates des expositions, la liste des foires et le nombre d'abonnés Instagram (29 900, relevé public du 16 novembre 2026). Montants, ventes, acheteurs, participations aux foires, fréquentation et historique Instagram sont inventés pour la démonstration et ne reflètent aucune donnée de la galerie.</p>
     <p class="small">Conversion indicative : 1 € = 655,957 FCFA.</p>
   </div>
 </footer>
 
 <script src="assets/chart.umd.min.js?v=4"></script>
-<script src="assets/app.js?v=20261116h"></script>
+<script src="assets/app.js?v=20261117w"></script>
 </body>
 </html>

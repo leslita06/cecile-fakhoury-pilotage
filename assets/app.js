@@ -2,7 +2,11 @@
 'use strict';
 var D=null, S={per:'12m',lieu:'all',art:'all',ach:'all',dev:'EUR',all:false};
 var LIEUX=['Abidjan','Dakar','Paris','Foires'];
-var COUL={Abidjan:'#111111',Dakar:'#8C6D46',Paris:'#9A9890',Foires:'#C9BFAE'};
+var COUL={Abidjan:'#1E3A8A',Dakar:'#0D9488',Paris:'#7C3AED',Foires:'#EA580C'};
+var TEINTE={Abidjan:'#EEF2FF',Dakar:'#F0FDFA',Paris:'#F5F3FF',Foires:'#FFF7ED'};
+var ICL={Abidjan:'landmark',Dakar:'building-2',Paris:'frame',Foires:'tent'};
+function ic(n,st){return '<i class="ic" style="-webkit-mask-image:url(assets/icons/'+n+'.svg);mask-image:url(assets/icons/'+n+'.svg)'+(st?';'+st:'')+'"></i>'}
+function hydrate(){Array.prototype.forEach.call(document.querySelectorAll('[data-ic]'),function(e){var u='url(assets/icons/'+e.dataset.ic+'.svg)';e.style.webkitMaskImage=u;e.style.maskImage=u})}
 var MOIS=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
 var charts={};
 function $(id){return document.getElementById(id)}
@@ -62,14 +66,35 @@ function render(){
   $('phrase').innerHTML=ph;
   // KPI
   var k=[
-    {l:'Chiffre d’affaires',v:bigMoney(ca),d:prev?delta(ca,cap)+r.cmp:'Ventes conclues, hors taxes'},
-    {l:'Œuvres vendues',v:nf(n),d:prev?delta(n,np)+r.cmp:'Toutes techniques'},
-    {l:'Prix moyen',v:bigMoney(pm),d:prev?delta(pm,pmp)+r.cmp:'Par œuvre vendue'},
-    {l:'Visiteurs des expositions',v:nf(vis),d:ex.length+' exposition'+(ex.length>1?'s':'')+', vernissages compris'},
-    {l:'Abonnés Instagram<span class="tag">Réel</span>',v:nf(D.instagram_reel.abonnes/1000,0)+'<small>k</small>',d:'Relevé public du '+D.instagram_reel.releve}
+    {i:'banknote',l:'Chiffre d’affaires',v:bigMoney(ca),d:prev?delta(ca,cap)+r.cmp:'Ventes conclues, hors taxes'},
+    {i:'frame',l:'Œuvres vendues',v:nf(n),d:prev?delta(n,np)+r.cmp:'Toutes techniques'},
+    {i:'tag',l:'Prix moyen',v:bigMoney(pm),d:prev?delta(pm,pmp)+r.cmp:'Par œuvre vendue'},
+    {i:'users',l:'Visiteurs des expositions',v:nf(vis),d:ex.length+' exposition'+(ex.length>1?'s':'')+', vernissages compris'},
+    {i:'instagram',l:'Abonnés Instagram<span class="tag reel">Réel</span>',v:nf(D.instagram_reel.abonnes/1000,1)+'<small>k</small>',d:'Relevé public du '+D.instagram_reel.releve}
   ];
-  $('kpis').innerHTML=k.map(function(x){return '<div class="kpi"><p class="l">'+x.l+'</p><p class="v">'+x.v+'</p><p class="d">'+x.d+'</p></div>'}).join('');
+  $('kpis').innerHTML=k.map(function(x){return '<div class="kpi"><div class="h"><span class="bx">'+ic(x.i)+'</span><p class="l">'+x.l+'</p></div><p class="v">'+x.v+'</p><p class="d">'+x.d+'</p></div>'}).join('');
+  renderRetenir(r,cur,prev,ca,cap);
   renderLieux(r); renderMois(r); renderArtistes(r); renderFoires(r); renderExpos(r); renderInsta(r);
+}
+function renderRetenir(r,cur,prev,ca,cap){
+  var it=[];
+  // 1. espace qui progresse le plus / recule
+  if(prev&&S.lieu==='all'){
+    var ev=LIEUX.map(function(l){var c=sum(cur.filter(function(v){return v.lieu===l}),function(v){return v.prix}),p=sum(prev.filter(function(v){return v.lieu===l}),function(v){return v.prix});return {l:l,c:c,p:p,d:p?(c-p)/p:null}}).filter(function(x){return x.d!==null&&x.c>0});
+    ev.sort(function(a,b){return b.d-a.d});
+    if(ev.length){var b=ev[0];it.push({k:b.d>=0?'up':'down',i:b.d>=0?'trending-up':'trending-down',t:'<b>'+(b.l==='Foires'?'Les foires':b.l)+'</b> '+(b.l==='Foires'?'progressent':'progresse')+' le plus : <b>'+(b.d>=0?'+':'\u2212')+nf(Math.abs(b.d*100),0)+'\u00a0%</b> de ventes sur un an, à '+money(b.c)+'.'});
+      var w=ev[ev.length-1];if(w!==b&&w.d<0)it.push({k:'down',i:'trending-down',t:'<b>'+(w.l==='Foires'?'Les foires':w.l)+'</b> '+(w.l==='Foires'?'reculent':'recule')+' : <b>\u2212'+nf(Math.abs(w.d*100),0)+'\u00a0%</b> sur un an. À regarder de près.'})}
+  }
+  // 2. artiste en tête
+  var by={};cur.forEach(function(v){by[v.artiste]=(by[v.artiste]||0)+v.prix});
+  var top=Object.keys(by).sort(function(a,b){return by[b]-by[a]})[0];
+  if(top&&S.art==='all')it.push({k:'',i:'palette',t:'<b>'+top+'</b> est l’artiste qui vend le plus : '+money(by[top])+', soit '+nf(by[top]/(ca||1)*100,0)+'\u00a0% des ventes '+r.lab+'.'});
+  // 3. foire la plus rentable
+  var fo=D.foires.filter(function(x){return x.mois>=r.a&&x.mois<=r.b}).map(function(x){var c=sum(D.ventes.filter(function(v){return v.foire===x.edition}),function(v){return v.prix});return {x:x,ratio:x.cout?c/x.cout:0}}).sort(function(a,b){return b.ratio-a.ratio});
+  if(fo.length&&it.length<3)it.push({k:'',i:'tent',t:'Foire la plus rentable : <b>'+fo[0].x.nom+'</b>, '+nf(fo[0].ratio,1)+'\u00a0× le coût du stand en ventes.'});
+  if(it.length<3){var now=D.expos.filter(function(e){return e.en_cours})[0];if(now)it.push({k:'',i:'door-open',t:'« '+now.titre+' » a reçu <b>'+nf(now.visiteurs)+' visiteurs</b> depuis son ouverture, dont '+nf(now.vernissage)+' au vernissage.'})}
+  if(!cur.length)it=[{k:'',i:'info',t:'Aucune vente ne correspond à ces filtres.'}];
+  $('retenir').innerHTML=it.slice(0,3).map(function(x){return '<div class="rt '+x.k+'"><span class="bx">'+ic(x.i)+'</span><p>'+x.t+'</p></div>'}).join('');
 }
 function renderLieux(r){
   var c=sales(r.a,r.b,{lieu:1}), p=r.pa?sales(r.pa,r.pb,{lieu:1}):null, tot=sum(c,function(v){return v.prix})||1;
@@ -78,7 +103,7 @@ function renderLieux(r){
     var vs=c.filter(function(v){return v.lieu===l}), ca=sum(vs,function(v){return v.prix});
     var pc=p?sum(p.filter(function(v){return v.lieu===l}),function(v){return v.prix}):null;
     var dim=S.lieu!=='all'&&S.lieu!==l?' dim':'';
-    return '<div class="lieu'+dim+'" data-lieu="'+l+'"><span class="n"><i style="background:'+COUL[l]+'"></i>'+(l==='Foires'?'En foire':l)+'</span><span class="m">'+money(ca)+'</span>'+
+    return '<div class="lieu'+dim+(S.lieu===l?' on':'')+'" data-lieu="'+l+'"><span class="bx" style="background:'+TEINTE[l]+';color:'+COUL[l]+'">'+ic(ICL[l])+'</span><span class="n">'+(l==='Foires'?'En foire':l)+'</span><span class="m">'+money(ca)+'</span>'+
       '<span class="s"><span>'+nf(vs.length)+' œuvres · '+nf(ca/tot*100,0)+'\u00a0% du total</span><span>'+(p&&pc?delta(ca,pc)+'sur un an':(p&&ca?'aucune vente un an plus tôt':''))+'</span></span>'+
       '<span class="bar"><span style="width:'+(ca/mx*100)+'%;background:'+COUL[l]+'"></span></span></div>';
   }).join('');
@@ -87,15 +112,15 @@ function renderLieux(r){
 function renderMois(r){
   var ms=mlist(r.a,r.b), c=sales(r.a,r.b,{lieu:1});
   var ds=LIEUX.filter(function(l){return S.lieu==='all'||S.lieu===l}).map(function(l){
-    return {label:l==='Foires'?'En foire':l,backgroundColor:COUL[l],borderWidth:0,barPercentage:.72,categoryPercentage:.9,maxBarThickness:28,
+    return {label:l==='Foires'?'En foire':l,backgroundColor:COUL[l],borderWidth:0,borderRadius:3,barPercentage:.72,categoryPercentage:.9,maxBarThickness:28,
       data:ms.map(function(m){return sum(c.filter(function(v){return v.lieu===l&&v.mois===m}),function(v){return v.prix})*(S.dev==='XOF'?D.taux_fcfa:1)})}});
   var cfg={type:'bar',data:{labels:ms.map(function(m){return mlab(m,true)}),datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},
-      plugins:{legend:{position:'bottom',align:'start',labels:{boxWidth:9,boxHeight:9,usePointStyle:true,pointStyle:'circle',color:'#4A4945',font:{family:'Inter',size:12},padding:16}},
-        tooltip:{backgroundColor:'#111',titleFont:{family:'Inter',size:12},bodyFont:{family:'Inter',size:12},padding:10,cornerRadius:0,
+      plugins:{legend:{position:'bottom',align:'start',labels:{boxWidth:9,boxHeight:9,usePointStyle:true,pointStyle:'circle',color:'#475569',font:{family:'Inter',size:12},padding:16}},
+        tooltip:{backgroundColor:'#0F172A',titleFont:{family:'Inter',size:12},bodyFont:{family:'Inter',size:12},padding:10,cornerRadius:8,
           callbacks:{label:function(x){return ' '+x.dataset.label+' : '+money(x.raw/(S.dev==='XOF'?D.taux_fcfa:1))}}}},
-      scales:{x:{stacked:true,grid:{display:false},border:{color:'#111'},ticks:{color:'#8A8780',font:{family:'Inter',size:innerWidth<480?10:11},maxRotation:0,autoSkip:true,autoSkipPadding:innerWidth<480?4:8}},
-        y:{stacked:true,grid:{color:'#ECE9E2'},border:{display:false},ticks:{color:'#8A8780',font:{family:'Inter',size:11},maxTicksLimit:5,
+      scales:{x:{stacked:true,grid:{display:false},border:{color:'#E2E8F0'},ticks:{color:'#64748B',font:{family:'Inter',size:innerWidth<480?10:11},maxRotation:0,autoSkip:true,autoSkipPadding:innerWidth<480?4:8}},
+        y:{stacked:true,grid:{color:'#F1F5F9'},border:{display:false},ticks:{color:'#64748B',font:{family:'Inter',size:11},maxTicksLimit:5,
           callback:function(v){return S.dev==='XOF'?nf(v/1e6,0)+' M':nf(v/1e3,0)+' k'}}}}}};
   if(charts.m){charts.m.destroy()} charts.m=new Chart($('c-mois'),cfg);
 }
@@ -131,7 +156,7 @@ function renderFoires(r){
 }
 function renderExpos(r){
   var now=D.expos.filter(function(e){return e.en_cours})[0];
-  if(now){$('expo-now').innerHTML='<div><p class="big">'+nf(now.visiteurs)+'</p></div><div><p class="t">'+now.titre+'</p><p class="s">'+now.artiste+' · '+now.lieu+' · en cours depuis le '+dfr(now.debut)+', jusqu’au '+dfr(now.fin)+'<br>visiteurs du 5 au 14 novembre, dont '+nf(now.vernissage)+' au vernissage · ventes comptées à l’arrêté de fin novembre</p></div>';$('expo-now').style.display=''}
+  if(now){$('expo-now').innerHTML='<span class="bx">'+ic('door-open','width:24px;height:24px')+'</span><div class="k"><p class="big">'+nf(now.visiteurs)+'</p><p class="bl">visiteurs du 5 au 14 novembre</p></div><div><p class="t">« '+now.titre+' »<span class="pill">En cours</span></p><p class="s">'+now.artiste+' · '+now.lieu+' · depuis le '+dfr(now.debut)+', jusqu’au '+dfr(now.fin)+'<br>dont '+nf(now.vernissage)+' au vernissage · ventes comptées à l’arrêté de fin novembre</p></div>';$('expo-now').style.display=''}
   var ex=D.expos.filter(function(e){return expoMatch(e,r)}).sort(function(a,b){return b.debut<a.debut?-1:1});
   var mx=Math.max.apply(null,ex.map(function(e){return e.visiteurs}).concat([1]));
   var h='<thead><tr><th>Exposition</th><th>Visiteurs</th><th>Par jour d’ouverture</th><th>Vernissage</th><th>Groupes scolaires</th><th>Œuvres vendues</th><th>Ventes</th></tr></thead><tbody>';
@@ -146,9 +171,9 @@ function renderInsta(r){
   $('ig-ab').textContent=nf(D.instagram_reel.abonnes);$('ig-rel').textContent=D.instagram_reel.releve;
   var g=sum(ig,function(x){return x.gain}), po=sum(ig,function(x){return x.portee})/Math.max(ig.length,1), en=sum(ig,function(x){return x.engagement})/Math.max(ig.length,1);
   $('ig-mini').innerHTML='<div><p class="v">+'+nf(g)+'</p><p class="l">nouveaux abonnés '+r.lab+' <span class="tag">Exemple</span></p></div><div><p class="v">'+nf(po/1000,0)+'\u00a0k</p><p class="l">comptes touchés par mois, en moyenne <span class="tag">Exemple</span></p></div><div><p class="v">'+nf(en,1)+'\u00a0%</p><p class="l">taux d’engagement moyen <span class="tag">Exemple</span></p></div>';
-  var cfg={type:'line',data:{labels:ig.map(function(x){return mlab(x.mois,true)}),datasets:[{data:ig.map(function(x){return x.abonnes}),borderColor:'#111',borderWidth:1.6,pointRadius:ig.map(function(x,i){return i===ig.length-1?4:0}),pointBackgroundColor:'#111',tension:.25,fill:{target:'origin'},backgroundColor:'rgba(17,17,17,.04)'}]},
-    options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{display:false},tooltip:{backgroundColor:'#111',cornerRadius:0,padding:10,displayColors:false,callbacks:{label:function(x){return nf(x.raw)+' abonnés'+(x.dataIndex===ig.length-1?' (relevé réel)':' (exemple)')}}}},
-      scales:{x:{grid:{display:false},border:{color:'#111'},ticks:{color:'#8A8780',font:{family:'Inter',size:11},maxRotation:0,autoSkipPadding:8}},y:{grid:{color:'#ECE9E2'},border:{display:false},ticks:{color:'#8A8780',font:{family:'Inter',size:11},maxTicksLimit:5,callback:function(v){return nf(v/1000,0)+' k'}}}}}};
+  var cfg={type:'line',data:{labels:ig.map(function(x){return mlab(x.mois,true)}),datasets:[{data:ig.map(function(x){return x.abonnes}),borderColor:'#A21CAF',borderWidth:2.2,pointRadius:ig.map(function(x,i){return i===ig.length-1?5:0}),pointBackgroundColor:'#A21CAF',tension:.3,fill:{target:'origin'},backgroundColor:'rgba(162,28,175,.07)'}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0F172A',cornerRadius:8,padding:10,displayColors:false,callbacks:{label:function(x){return nf(x.raw)+' abonnés'+(x.dataIndex===ig.length-1?' (relevé réel)':' (exemple)')}}}},
+      scales:{x:{grid:{display:false},border:{color:'#E2E8F0'},ticks:{color:'#64748B',font:{family:'Inter',size:11},maxRotation:0,autoSkipPadding:8}},y:{grid:{color:'#F1F5F9'},border:{display:false},ticks:{color:'#64748B',font:{family:'Inter',size:11},maxTicksLimit:5,callback:function(v){return nf(v/1000,0)+' k'}}}}}};
   if(charts.i){charts.i.destroy()} charts.i=new Chart($('c-ig'),cfg);
   $('themes').innerHTML=D.themes.map(function(t){return '<div class="th"><p class="v">'+t.part+'\u00a0%</p><p class="n">'+t.theme+'</p><p class="e">des publications · engagement '+nf(t.engagement,1)+'\u00a0%</p></div>'}).join('');
 }
@@ -163,8 +188,9 @@ function bind(){
   Array.prototype.forEach.call(document.querySelectorAll('[data-dev]'),function(b){b.onclick=function(){S.dev=b.dataset.dev;Array.prototype.forEach.call(document.querySelectorAll('[data-dev]'),function(x){x.classList.toggle('on',x===b)});render()}});
   $('raz').onclick=function(){S={per:'12m',lieu:'all',art:'all',ach:'all',dev:S.dev,all:false};$('f-per').value='12m';$('f-lieu').value='all';$('f-art').value='all';$('f-ach').value='all';render()};
   $('arrete').textContent=D.arrete;
+  hydrate();
 }
 Chart.defaults.font.family='Inter';
-fetch('data/donnees.json?v=20261116h').then(function(r){return r.json()}).then(function(j){D=j;bind();render()})
+fetch('data/donnees.json?v=20261117w').then(function(r){return r.json()}).then(function(j){D=j;bind();render()})
  .catch(function(){$('phrase').textContent='Les données n’ont pas pu être chargées. Recharger la page.'});
 })();
